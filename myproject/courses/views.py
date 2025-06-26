@@ -5,7 +5,7 @@ from .serializers import CourseSerializer, LessonSerializer
 
 
 class CourseViewSet(viewsets.ModelViewSet):
-    """Viewset для курса (поддерживает все CRUD операции)."""
+    """ViewSet для курса (поддерживает все CRUD операции)."""
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
 
