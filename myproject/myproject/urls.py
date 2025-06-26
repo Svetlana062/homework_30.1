@@ -4,9 +4,9 @@ from django.conf.urls.static import static
 from django.conf import settings
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('users/', include('users.urls')),  # маршруты для приложения users
-    path('courses/', include('courses.urls')),  # маршруты для приложения courses
+    path("admin/", admin.site.urls),
+    path("users/", include("users.urls")),  # маршруты для приложения users
+    path("courses/", include("courses.urls")),  # маршруты для приложения courses
 ]
 
 # Обслуживание медиафайлов при DEBUG
