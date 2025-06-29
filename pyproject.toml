@@ -10,6 +10,7 @@ packages = [{include = "homework_30"}]
 python = "^3.13"
 django = "^5.2.3"
 djangorestframework = "^3.16.0"
+django-filter = "^25.1"
 
 
 [build-system]
