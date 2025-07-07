@@ -2,7 +2,7 @@ from rest_framework import generics, viewsets
 from rest_framework.permissions import AllowAny, IsAuthenticated
 
 from .models import Course, Lesson
-from .permissions import IsOwnerOrReadOnly
+from .permissions import IsOwnerOrReadOnly, IsModeratorOrReadOnly
 from .serializers import CourseSerializer, LessonSerializer
 
 
@@ -27,6 +27,7 @@ class CourseViewSet(viewsets.ModelViewSet):
         return [permission() for permission in permission_classes]
 
     def perform_create(self, serializer):
+        """Автоматическая привязка текущего пользователя к создаваемому курсу."""
         serializer.save(owner=self.request.user)
 
 
@@ -35,6 +36,7 @@ class LessonListCreate(generics.ListCreateAPIView):
 
     queryset = Lesson.objects.all()
     serializer_class = LessonSerializer
+    permission_classes = [IsModeratorOrReadOnly]
 
     def get_permissions(self):
         if self.action in ["list", "retrieve"]:
@@ -50,9 +52,14 @@ class LessonListCreate(generics.ListCreateAPIView):
             permission_classes = [AllowAny]
         return [permission() for permission in permission_classes]
 
+    def perform_create(self, serializer):
+        """Автоматическая привязка текущего пользователя к создаваемому уроку."""
+        serializer.save(owner=self.request.user)
+
 
 class LessonRetrieveUpdateDestroy(generics.RetrieveUpdateDestroyAPIView):
     """APIView для получения, обновления или удаления конкретного урока по его ID."""
 
     queryset = Lesson.objects.all()
     serializer_class = LessonSerializer
+    permission_classes = [IsModeratorOrReadOnly]

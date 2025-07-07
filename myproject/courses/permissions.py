@@ -31,9 +31,10 @@ class IsModeratorOrReadOnly(BasePermission):
         # Разрешить всем безопасные методы
         if request.method in SAFE_METHODS:
             return True
+        # Для POST и DELETE — запрещено всем (в том числе модераторам)
         if request.method in ["POST", "DELETE"]:
             return False
-        # Для остальных методов — только модераторам
+        # Для остальных методов — проверка на модератора
         return bool(
             request.user
             and request.user.is_authenticated
