@@ -4,9 +4,18 @@ from .models import CustomUser, Payment
 
 class CustomUserSerializer(serializers.ModelSerializer):
     """Сериализатор модели CustomUser для преобразования данных в формат JSON и обратно."""
+    password = serializers.CharField(write_only=True)
+
     class Meta:
         model = CustomUser
-        fields = ['id', 'email', 'phone_number', 'city', 'avatar']
+        fields = ['id', 'email', 'phone_number', 'city', 'avatar', 'password']
+
+    def create(self, validated_data):
+        password = validated_data.pop('password')
+        user = CustomUser(**validated_data)
+        user.set_password(password)
+        user.save()
+        return user
 
 
 class PaymentSerializer(serializers.ModelSerializer):
