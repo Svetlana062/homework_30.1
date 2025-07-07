@@ -1,6 +1,9 @@
 from rest_framework import viewsets, generics
+from rest_framework.permissions import IsAuthenticated, AllowAny
+
 from .models import Course, Lesson
 from .serializers import CourseSerializer, LessonSerializer
+from .permissions import IsOwnerOrReadOnly
 
 
 class CourseViewSet(viewsets.ModelViewSet):
@@ -8,11 +11,42 @@ class CourseViewSet(viewsets.ModelViewSet):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
 
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve']:
+            # Всем разрешено просматривать
+            permission_classes = [AllowAny]
+        elif self.action == 'create':
+            # Создавать могут все авторизованные
+            permission_classes = [IsAuthenticated]
+        elif self.action in ['update', 'partial_update', 'destroy']:
+            # Обновлять и удалять — только модераторы или владельцы
+            permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
+        else:
+            permission_classes = [AllowAny]
+        return [permission() for permission in permission_classes]
+
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
+
 
 class LessonListCreate(generics.ListCreateAPIView):
     """Generic-классы для урока (поддерживают все операции)."""
     queryset = Lesson.objects.all()
     serializer_class = LessonSerializer
+
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve']:
+            # Всем разрешено просматривать
+            permission_classes = [AllowAny]
+        elif self.action == 'create':
+            # Создавать могут все авторизованные
+            permission_classes = [IsAuthenticated]
+        elif self.action in ['update', 'partial_update', 'destroy']:
+            # Обновлять и удалять — только модераторы или владельцы
+            permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
+        else:
+            permission_classes = [AllowAny]
+        return [permission() for permission in permission_classes]
 
 
 class LessonRetrieveUpdateDestroy(generics.RetrieveUpdateDestroyAPIView):
