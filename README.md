@@ -59,6 +59,7 @@ API будет доступен по адресу: http://127.0.0.1:8000/
 * Сериализатор модели пользователя для API (myproject/users/serializers.py);
 * Формы для регистрации, входа и создания новых пользователей (myproject/users/forms.py);
 * ViewSet для работы с пользователями через API (myproject/users/views.py).
+* Permissions для разграничения прав доступа (myproject\users\permissions.py)
 
 2. courses (реализует управление курсами и уроками):
 * Модели курса и урока (myproject/courses/models.py);
@@ -67,6 +68,7 @@ API будет доступен по адресу: http://127.0.0.1:8000/
 * ViewSet для курсов (CourseViewSet);
 * Generic-классы для работы с уроками (например, список и создание уроков) (LessonListCreate);
 * APIView для получения, обновления или удаления конкретного урока по его ID.
+* Permissions для разграничения прав доступа (myproject\courses\permissions.py)
 
 ### Дополнительно
 В проекте также присутствуют: 
