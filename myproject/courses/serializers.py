@@ -1,6 +1,4 @@
 from rest_framework import serializers
-from users.models import CustomUser
-
 from .models import Course, Lesson
 
 
@@ -47,22 +45,3 @@ class CourseDetailSerializer(serializers.ModelSerializer):
 
     def get_lessons_count(self, obj):
         return obj.lessons.count()
-
-
-class UserPublicSerializer(serializers.ModelSerializer):
-    """Сериализатор для просмотра чужих профилей."""
-
-    class Meta:
-        model = CustomUser
-        fields = ["id", "email", "phone_number", "city", "avatar"]
-        # исключаем пароль, фамилию, историю платежей
-
-
-class UserFullSerializer(serializers.ModelSerializer):
-    """Сериализатор для редактирования своего профиля."""
-
-    password = serializers.CharField(write_only=True, required=False)
-
-    class Meta:
-        model = CustomUser
-        fields = ["id", "email", "phone_number", "city", "avatar", "password"]

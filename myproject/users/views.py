@@ -1,5 +1,4 @@
 import django_filters
-from courses.serializers import UserFullSerializer, UserPublicSerializer
 from rest_framework import filters, generics, permissions, status, viewsets
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
@@ -7,7 +6,7 @@ from rest_framework.views import APIView
 
 from .models import CustomUser, Payment
 from .permissions import IsOwnerOrReadOnly
-from .serializers import (CustomUserSerializer, PaymentSerializer)
+from .serializers import (CustomUserSerializer, PaymentSerializer, UserFullSerializer, UserPublicSerializer)
 
 
 class CustomUserViewSet(viewsets.ModelViewSet):
