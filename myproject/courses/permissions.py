@@ -13,7 +13,7 @@ class IsModerator(BasePermission):
 
 
 class IsOwnerOrReadOnly(BasePermission):
-    """Разрешено редактировать только владельцу объекта, а для просматривать — всем."""
+    """Разрешено редактировать только владельцу объекта, а просматривать — всем."""
 
     def has_object_permission(self, request, view, obj):
         # чтение разрешено всем
@@ -24,8 +24,8 @@ class IsOwnerOrReadOnly(BasePermission):
 
 
 class IsModeratorOrReadOnly(BasePermission):
-    """Разрешает только модераторам редактировать объекты,
-    а чтение — всем."""
+    """Модераторы могут читать и редактировать, но не создавать и не удалять.
+    Остальные — только читать."""
 
     def has_permission(self, request, view):
         # Разрешить всем безопасные методы
@@ -42,11 +42,18 @@ class IsModeratorOrReadOnly(BasePermission):
         )
 
     def has_object_permission(self, request, view, obj):
-        # Чтение — всем; изменение — только модераторам
+        # Всем разрешены безопасные методы
         if request.method in SAFE_METHODS:
             return True
-        return bool(
-            request.user
-            and request.user.is_authenticated
-            and request.user.groups.filter(name="Модераторы").exists()
-        )
+        # Модераторы могут редактировать (PUT/PATCH)
+        if request.method in ["PUT", "PATCH"]:
+            return bool(
+                request.user
+                and request.user.is_authenticated
+                and request.user.groups.filter(name="Модераторы").exists()
+            )
+        # Запретить удаление (DELETE)
+        if request.method == "DELETE":
+            return False
+        # По умолчанию — запрещено
+        return False
