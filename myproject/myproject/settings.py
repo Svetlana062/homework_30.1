@@ -21,8 +21,11 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+
+    'django_extensions',
     "rest_framework",  # подключаем DRF
     "rest_framework_simplejwt",  # подключаем JWT
+
     "users",  # приложение для регистрации/авторизации
     "courses",  # приложение для создания курса и уроков
 ]

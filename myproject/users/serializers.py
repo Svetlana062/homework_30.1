@@ -47,6 +47,7 @@ class UserPaymentHistorySerializer(serializers.ModelSerializer):
         model = CustomUser
         fields = ["id", "email", "payments"]
 
+
 class UserPublicSerializer(serializers.ModelSerializer):
     """Сериализатор для просмотра чужих профилей."""
 

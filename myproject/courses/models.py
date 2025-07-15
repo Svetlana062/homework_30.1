@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.urls import reverse
 
 User = get_user_model()
 
@@ -27,7 +28,7 @@ class Course(models.Model):
 class Lesson(models.Model):
     """Модель урока внутри курса."""
 
-    course: "Course" = models.ForeignKey(
+    course = models.ForeignKey(
         "Course", related_name="lessons", on_delete=models.CASCADE, verbose_name="Курс"
     )
     title = models.CharField(max_length=255, verbose_name="Название урока")
@@ -47,18 +48,25 @@ class Lesson(models.Model):
         verbose_name = "Урок"
         verbose_name_plural = "Уроки"
 
+    def get_absolute_url(self):
+        return reverse("lesson-detail", kwargs={"pk": self.pk})
+
 
 class Subscription(models.Model):
     """Модель подписки."""
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='subscriptions')
-    course = models.ForeignKey('Course', on_delete=models.CASCADE, related_name='subscribers')
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="subscriptions"
+    )
+    course = models.ForeignKey(
+        "Course", on_delete=models.CASCADE, related_name="subscribers"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('user', 'course')
-        verbose_name = 'Подписка'
-        verbose_name_plural = 'Подписки'
+        unique_together = ("user", "course")
+        verbose_name = "Подписка"
+        verbose_name_plural = "Подписки"
 
     def __str__(self):
         return f"{self.user.username} подписан на {self.course.title}"

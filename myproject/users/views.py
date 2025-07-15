@@ -6,7 +6,8 @@ from rest_framework.views import APIView
 
 from .models import CustomUser, Payment
 from .permissions import IsOwnerOrReadOnly
-from .serializers import (CustomUserSerializer, PaymentSerializer, UserFullSerializer, UserPublicSerializer)
+from .serializers import (CustomUserSerializer, PaymentSerializer,
+                          UserFullSerializer, UserPublicSerializer)
 
 
 class CustomUserViewSet(viewsets.ModelViewSet):
