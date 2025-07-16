@@ -67,8 +67,10 @@ API будет доступен по адресу: http://127.0.0.1:8000/
 * Сериализатор курса для API (myproject/courses/serializers.py);
 * ViewSet для курсов (CourseViewSet);
 * Generic-классы для работы с уроками (например, список и создание уроков) (LessonListCreate);
-* APIView для получения, обновления или удаления конкретного урока по его ID.
-* Permissions для разграничения прав доступа (myproject\courses\permissions.py)
+* APIView для получения, обновления или удаления конкретного урока по его ID;
+* Permissions для разграничения прав доступа (myproject\courses\permissions.py);
+* Валидатор ссылок на YouTube (myproject/courses/validators.py);
+* Пагинатор для списков и уроков (myproject/courses/paginations.py).
 
 ### Дополнительно
 В проекте также присутствуют: 
