@@ -60,7 +60,8 @@ class LessonViewSet(viewsets.ModelViewSet):
         elif self.action == "create":
             permission_classes = [IsAuthenticated]
         elif self.action in ["update", "partial_update", "destroy"]:
-            permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
+            # Разрешаем владельцу или модератору
+            permission_classes = [IsAuthenticated, IsOwnerOrReadOnly | IsModerator]
         else:
             permission_classes = [AllowAny]
         return [permission() for permission in permission_classes]

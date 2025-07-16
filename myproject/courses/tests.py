@@ -1,209 +1,159 @@
-from django.core.files.uploadedfile import SimpleUploadedFile
+from django.contrib.auth.models import Group
 from django.urls import reverse
+from django.core.files.uploadedfile import SimpleUploadedFile
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from users.models import CustomUser
+from courses.models import Course, Lesson, Subscription
+from django.contrib.auth import get_user_model
 
-from .models import Course, Lesson
+User = get_user_model()
 
 
-class LessonAPITests(APITestCase):
+class CoursesLessonsSubscriptionsTests(APITestCase):
     def setUp(self):
-        # Создаем двух пользователей
-        self.user1 = CustomUser.objects.create_user(
-            email="user1@example.com", username="user1", password="pass1234"
-        )
-        self.user2 = CustomUser.objects.create_user(
-            email="user2@example.com", username="user2", password="pass5678"
-        )
+        # Создаем группы
+        self.moderators_group = Group.objects.create(name="Модераторы")
 
-        # Создаем изображения для уроков
-        self.image1 = SimpleUploadedFile(
-            name="image1.jpg",
-            content=b"file_content",  # Можно оставить пустым или добавить реальные байты изображения
-            content_type="image/jpeg",
+        # Создаем пользователей
+        self.owner = User.objects.create_user(
+            username="owner", email="owner@example.com", password="pass1234"
         )
-        self.image2 = SimpleUploadedFile(
-            name="image2.jpg", content=b"file_content", content_type="image/jpeg"
+        self.moderator = User.objects.create_user(
+            username="moderator", email="moderator@example.com", password="pass1234"
+        )
+        self.moderator.groups.add(self.moderators_group)
+
+        self.other_user = User.objects.create_user(
+            username="other", email="other@example.com", password="pass1234"
         )
 
-        # Создаем курс
-        self.course1 = Course.objects.create(
-            title="Course 1",
-            description="Description",
-            owner=self.user1,
+        # Создаем курс владельцем
+        self.course = Course.objects.create(
+            title="Test Course",
+            preview_image="course_previews/test.jpg",
+            description="Test course description",
+            owner=self.owner,
         )
 
-        # Создаем уроки
-        self.lesson1 = Lesson.objects.create(
-            title="Lesson 1",
-            description="Content 1",
-            course=self.course1,
-            preview_image=self.image1,
-            video_link="https://www.youtube.com/watch?v=r_C22jf81gg",
-            owner=self.user1,
-        )
-        self.lesson2 = Lesson.objects.create(
-            title="Lesson 2",
-            description="Content 2",
-            course=self.course1,
-            preview_image=self.image2,
-            video_link="https://www.youtube.com/watch?v=M6n0Kl_qg3Q",
-            owner=self.user2,
+        # Создаем урок владельцем
+        self.lesson = Lesson.objects.create(
+            course=self.course,
+            title="Test Lesson",
+            description="Test lesson description",
+            preview_image="lesson_previews/test.jpg",
+            video_link="https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+            owner=self.owner,
         )
 
-        # URL для списка уроков
-        self.lesson_list_url = reverse(
-            "lesson-list"
-        )  # предполагается, что роутер использует basename='lesson'
+    # Тесты CRUD уроков
 
-    def authenticate(self, user):
-        # Аутентификация пользователя (например, через токен или сессию)
-        self.client.force_authenticate(user=user)
+    def test_owner_can_create_lesson(self):
+        self.client.force_authenticate(user=self.owner)
+        url = reverse("lesson-list")
 
-    def test_list_lessons_unauthenticated(self):
-        # Проверка получения списка без авторизации (должно работать, если AllowAny)
-        response = self.client.get(self.lesson_list_url)
-        print("Status code:", response.status_code)
-        print("Response data:", response.data)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # Проверяем, что возвращается список уроков
-        self.assertEqual(len(response.data), Lesson.objects.count())
-
-    def test_create_lesson_authenticated(self):
-        self.authenticate(self.user1)
-
-        # Создаем файл для загрузки
         image = SimpleUploadedFile(
-            name="test.jpg", content=b"file_content", content_type="image/jpeg"
+            name="test_image.jpg",
+            content=b"\x47\x49\x46\x38\x39\x61\x01\x00\x01\x00\x80\x00\x00\x00\
+                x00\x00\xff\xff\xff\x21\xf9\x04\x00\x00\x00\x00\x00\x2c\x00\x00\x00\
+                x00\x01\x00\x01\x00\x00\x02\x02\x4c\x01\x00\x3b",
+            content_type="image/gif",
         )
 
         data = {
+            "course": self.course.id,
             "title": "New Lesson",
-            "description": "New Content",
-            "course": self.course1.id,
+            "description": "New lesson description",
             "preview_image": image,
-            "video_link": "https://www.youtube.com/watch?v=w-ITLbRfhnA",
+            "video_link": "https://www.youtube.com/watch?v=3JZ_D3ELwOQ",
         }
-        response = self.client.post(self.lesson_list_url, data, format="multipart")
-
-        print("Status code:", response.status_code)
-        print("Response data:", response.data)
+        response = self.client.post(
+            url, data, format="multipart"
+        )  # multipart для файлов
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        # Проверяем, что урок создан и владелец — текущий пользователь
-        lesson_id = response.data["id"]
-        lesson = Lesson.objects.get(id=lesson_id)
-        self.assertEqual(lesson.owner, self.user1)
 
-    def test_create_lesson_unauthenticated(self):
+    def test_other_user_cannot_update_lesson(self):
+        self.client.force_authenticate(user=self.other_user)
+        url = reverse("lesson-detail", kwargs={"pk": self.lesson.id})
+        data = {"title": "Hacked Title"}
+        response = self.client.patch(url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_owner_can_update_own_lesson(self):
+        self.client.force_authenticate(user=self.owner)
+        url = reverse("lesson-detail", kwargs={"pk": self.lesson.id})
+        data = {"title": "Updated Title"}
+        response = self.client.patch(url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.lesson.refresh_from_db()
+        self.assertEqual(self.lesson.title, "Updated Title")
+
+    def test_moderator_can_update_any_lesson(self):
+        self.client.force_authenticate(user=self.moderator)
+        url = reverse("lesson-detail", kwargs={"pk": self.lesson.id})
+        data = {"title": "Moderator Updated"}
+        response = self.client.patch(url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.lesson.refresh_from_db()
+        self.assertEqual(self.lesson.title, "Moderator Updated")
+
+    def test_unauthenticated_user_cannot_create_lesson(self):
+        url = reverse("lesson-list")
         data = {
+            "course": self.course.id,
             "title": "Unauthorized Lesson",
-            "description": "No auth",
-            "course": self.course1.id,
-            "preview_image": SimpleUploadedFile(
-                name="test.jpg", content=b"file_content", content_type="image/jpeg"
-            ),
-            "video_link": "https://www.youtube.com/watch?v=somevideo",
+            "description": "Should fail",
+            "preview_image": None,
+            "video_link": "https://www.youtube.com/watch?v=3JZ_D3ELwOQ",
         }
-        response = self.client.post(self.lesson_list_url, data, format="multipart")
-        print("Status code:", response.status_code)
-        print("Response data:", response.data)
-        self.assertIn(
-            response.status_code,
-            [status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN],
-        )
+        response = self.client.post(url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    def test_retrieve_lesson_detail(self):
-        url = reverse("lesson-detail", args=[self.lesson1.id])
-        response = self.client.get(url)
-        print("Status code:", response.status_code)
-        print("Response data:", response.data)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # Проверка содержимого ответа (название урока)
-        self.assertEqual(response.data["title"], self.lesson1.title)
-
-    def test_update_lesson_owner(self):
-        url = reverse("lesson-detail", args=[self.lesson1.id])
-
-        # Аутентификация владельца урока
-        self.authenticate(self.user1)
-
-        new_data = {"title": "Updated Title"}
-
-        response = self.client.put(url, new_data)
-        print("Status code:", response.status_code)
-        print("Response data:", response.data)
-        # У владельца должно получиться обновить
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        # Проверяем изменение в базе
-        self.lesson1.refresh_from_db()
-        print("Updated title:", self.lesson1.title)
-        self.assertEqual(self.lesson1.title, "Updated Title")
-
-    def test_update_lesson_not_owner_forbidden(self):
-        url = reverse("lesson-detail", args=[self.lesson1.id])
-
-        # Аутентификация другого пользователя — обновление должно быть запрещено
-        self.authenticate(self.user2)
-
-        new_data = {"title": "Hacked Title"}
-
-        response = self.client.put(url, new_data)
-        print("Status code:", response.status_code)
-        print("Response data:", response.data)
-        # Ожидаем Forbidden (403) или Unauthorized (401)
-        self.assertIn(
-            response.status_code,
-            [status.HTTP_403_FORBIDDEN, status.HTTP_401_UNAUTHORIZED],
-        )
-
-    def test_partial_update_lesson_owner(self):
-        url = reverse("lesson-detail", args=[self.lesson2.id])
-
-        # Аутентификация владельца урока
-        self.authenticate(self.user2)
-
-        patch_data = {"content": "Updated Content"}
-
-        response = self.client.patch(url, patch_data)
-        print("Status code:", response.status_code)
-        print("Response data:", response.data)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        # Проверка изменения в базе
-        self.lesson2.refresh_from_db()
-        print("Updated description:", self.lesson2.description)
-        self.assertEqual(self.lesson2.description, "Updated Content")
-
-    def test_delete_lesson_owner(self):
-        url = reverse("lesson-detail", args=[self.lesson2.id])
-
-        # Аутентификация владельца урока (user2 — владелец lesson2)
-        self.authenticate(self.user2)
-
+    def test_owner_can_delete_own_lesson(self):
+        self.client.force_authenticate(user=self.owner)
+        url = reverse("lesson-detail", kwargs={"pk": self.lesson.id})
         response = self.client.delete(url)
-        print("Status code:", response.status_code)
-        print("Response data:", response.data)
-        # Удаление должно быть успешным (204 No Content)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(Lesson.objects.filter(id=self.lesson.id).exists())
 
-        # Урок должен исчезнуть из базы
-        with self.assertRaises(Lesson.DoesNotExist):
-            Lesson.objects.get(id=self.lesson2.id)
-
-    def test_delete_lesson_not_owner_forbidden(self):
-        url = reverse("lesson-detail", args=[self.lesson1.id])
-
-        # Аутентификация другого пользователя — удаление запрещено
-        self.authenticate(self.user2)
-
+    def test_other_user_cannot_delete_lesson(self):
+        self.client.force_authenticate(user=self.other_user)
+        url = reverse("lesson-detail", kwargs={"pk": self.lesson.id})
         response = self.client.delete(url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-        print("Status code:", response.status_code)
-        print("Response data:", response.data)
-        # Ожидаем Forbidden или Unauthorized
-        self.assertIn(
-            response.status_code, [status.HTTP_403_FORBIDDEN, status.HTTP_401_UNAUTHORIZED]
+    # Тесты подписки
+
+    def test_user_can_subscribe_and_unsubscribe(self):
+        self.client.force_authenticate(user=self.other_user)
+        url = reverse("subscription-toggle")
+        # Подписаться
+        response = self.client.post(url, {"course_id": self.course.id}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("Подписка добавлена", response.data["message"])
+        self.assertTrue(
+            Subscription.objects.filter(
+                user=self.other_user, course=self.course
+            ).exists()
         )
+
+        # Отписаться
+        response = self.client.post(url, {"course_id": self.course.id}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("Подписка удалена", response.data["message"])
+        self.assertFalse(
+            Subscription.objects.filter(
+                user=self.other_user, course=self.course
+            ).exists()
+        )
+
+    def test_subscription_without_course_id_returns_400(self):
+        self.client.force_authenticate(user=self.other_user)
+        url = reverse("subscription-toggle")
+        response = self.client.post(url, {}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_unauthenticated_user_cannot_subscribe(self):
+        url = reverse("subscription-toggle")
+        response = self.client.post(url, {"course_id": self.course.id}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
