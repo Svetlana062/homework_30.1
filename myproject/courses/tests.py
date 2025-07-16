@@ -12,7 +12,7 @@ User = get_user_model()
 
 class CoursesLessonsSubscriptionsTests(APITestCase):
     def setUp(self):
-        # Создаем группы
+        # Создаем группу
         self.moderators_group = Group.objects.create(name="Модераторы")
 
         # Создаем пользователей
