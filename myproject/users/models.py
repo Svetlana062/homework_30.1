@@ -84,5 +84,10 @@ class Payment(models.Model):
         max_length=20, choices=PAYMENT_METHOD_CHOICES, verbose_name="Способ оплаты"
     )
 
+    # Хранение данных о Stripe-сессии
+    stripe_session_id = models.CharField(max_length=255, blank=True, null=True)
+    payment_url = models.URLField(blank=True, null=True)
+    payment_status = models.CharField(max_length=50, blank=True, null=True)
+
     def __str__(self):
         return f"Платеж {self.id} пользователя {self.user.email}"

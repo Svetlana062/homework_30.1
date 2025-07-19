@@ -24,6 +24,9 @@ class PaymentSerializer(serializers.ModelSerializer):
     """Сериализатор для платежей."""
 
     user_email = serializers.ReadOnlyField(source="user.email")
+    stripe_session_id = serializers.CharField(read_only=True)
+    payment_url = serializers.URLField(read_only=True)
+    payment_status = serializers.CharField(read_only=True)
 
     class Meta:
         model = Payment
@@ -35,6 +38,9 @@ class PaymentSerializer(serializers.ModelSerializer):
             "lesson",
             "amount",
             "payment_method",
+            "stripe_session_id",
+            "payment_url",
+            "payment_status",
         ]
 
 

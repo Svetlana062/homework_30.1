@@ -22,8 +22,11 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django_extensions",
+
     "rest_framework",  # подключаем DRF
     "rest_framework_simplejwt",  # подключаем JWT
+    "drf_yasg",  # подключаем drf-yasg
+
     "users",  # приложение для регистрации/авторизации
     "courses",  # приложение для создания курса и уроков
 ]
@@ -138,4 +141,21 @@ REST_FRAMEWORK = {
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+}
+
+STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
+
+# Конфигурация для Swagger (инструмента для документирования и тестирования
+# REST API), которая определяет способы аутентификации, используемые в нашем API.
+SWAGGER_SETTINGS = {
+   'SECURITY_DEFINITIONS': {  # словарь, где описываются методы безопасности (аутентификации)
+      'Basic': {  # базовая аутентификация HTTP (клиент отправляет логин и пароль в заголовке запроса)
+            'type': 'basic'
+      },
+      'Bearer': {  # аутентификация по токену (у нас JWT), где токен передается в заголовке Authorization
+            'type': 'apiKey',  # аутентификация происходит через API-ключ.
+            'name': 'Authorization',  # имя HTTP-заголовка, в котором передается токен
+            'in': 'header'  # указывает, что ключ (токен) передается в заголовке запроса
+      }
+   }
 }

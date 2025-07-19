@@ -20,6 +20,7 @@ class CourseSerializer(serializers.ModelSerializer):
             "description",
             "lessons_count",
             "is_subscribed",
+            "owner",
         ]
 
     def get_lessons_count(self, obj):
