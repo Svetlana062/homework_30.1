@@ -47,6 +47,7 @@ class CourseViewSet(viewsets.ModelViewSet):
 
 class LessonViewSet(viewsets.ModelViewSet):
     """ViewSet для урока (поддерживает все CRUD операции)."""
+
     queryset = Lesson.objects.all().order_by("id")
     serializer_class = LessonSerializer
     permission_classes = [
