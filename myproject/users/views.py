@@ -9,12 +9,8 @@ from rest_framework.views import APIView
 
 from .models import CustomUser, Payment
 from .permissions import IsOwnerOrReadOnly
-from .serializers import (
-    CustomUserSerializer,
-    PaymentSerializer,
-    UserFullSerializer,
-    UserPublicSerializer,
-)
+from .serializers import (CustomUserSerializer, PaymentSerializer,
+                          UserFullSerializer, UserPublicSerializer)
 
 # Инициализируем Stripe с нашим API ключом
 stripe.api_key = settings.STRIPE_SECRET_KEY
