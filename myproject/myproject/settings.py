@@ -1,6 +1,7 @@
 import os
 from datetime import timedelta
 from pathlib import Path
+from celery.schedules import crontab
 
 from dotenv import load_dotenv
 
@@ -15,13 +16,14 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
-    "django.contrib.admin",
-    "django.contrib.auth",
-    "django.contrib.contenttypes",
-    "django.contrib.sessions",
-    "django.contrib.messages",
-    "django.contrib.staticfiles",
-    "django_extensions",
+    "django.contrib.admin",  # администрирование данных в Django-приложениях
+    "django.contrib.auth",  # система аутентификации и авторизации пользователей
+    "django.contrib.contenttypes",  # инфраструктура для работы с типами моделей, зарегистрированными в проекте
+    "django.contrib.sessions",  # часть фреймворка, для обеспечения поддержки сессий для веб-приложений
+    "django.contrib.messages",  # встроенный фреймворк сообщений, для отображения сообщения пользователям
+    "django.contrib.staticfiles",  # встроенное приложение, для управления и обслуживания статических файлов
+    "django_extensions", #  дополнительные команды и утилиты для фреймворка Django
+    "django_celery_beat",  # расширение, позволяющее хранить расписание периодических задач в бд
 
     "rest_framework",  # подключаем DRF
     "rest_framework_simplejwt",  # подключаем JWT
@@ -158,4 +160,28 @@ SWAGGER_SETTINGS = {
             'in': 'header'  # указывает, что ключ (токен) передается в заголовке запроса
       }
    }
+}
+
+# Настройки для Celery
+
+# URL-адрес брокера сообщений (Redis по умолчанию работает на порту 6379)
+CELERY_BROKER_URL = os.getenv('REDIS_URL')
+
+# URL-адрес брокера результатов, также Redis
+CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND")
+
+# Часовой пояс для работы Celery
+CELERY_TIMEZONE = "UTC"
+
+# Флаг отслеживания выполнения задач
+CELERY_TASK_TRACK_STARTED = True
+
+# Максимальное время на выполнение задачи
+CELERY_TASK_TIME_LIMIT = 30 * 60
+
+CELERY_BEAT_SCHEDULE = {
+    'deactivate_inactive_users_every_day': {
+    'task': 'users.tasks.deactivate_inactive_users',
+    'schedule': crontab(hour=0, minute=0),  # каждый день в 00:00
+    },
 }
