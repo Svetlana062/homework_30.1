@@ -1,4 +1,7 @@
+from datetime import timedelta
+
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from rest_framework import permissions, status, viewsets
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -8,6 +11,7 @@ from .models import Course, Lesson, Subscription
 from .paginations import CustomPagination
 from .permissions import IsModerator, IsOwnerOrReadOnly
 from .serializers import CourseSerializer, LessonSerializer
+from .tasks import send_course_update_email
 
 
 class CourseViewSet(viewsets.ModelViewSet):
@@ -44,6 +48,30 @@ class CourseViewSet(viewsets.ModelViewSet):
         context["request"] = self.request
         return context
 
+    def update(self, request, *args, **kwargs):
+        """Асинхронная рассылка писем при обновлении курса."""
+        # Выполняем стандартное обновление
+        response = super().update(request, *args, **kwargs)
+
+        if response.status_code == status.HTTP_200_OK:
+            # Получаем курс из сериализатора
+            course = self.get_object()
+            # Получение текущего времени
+            now = timezone.now()
+
+            # Проверяем, если last_updated отсутствует или прошло более 4 часов
+            if not course.last_updated or (now - course.last_updated) > timedelta(
+                hours=4
+            ):
+                # Получаем подписанных пользователей
+                subscribers = course.subscribers.values_list("email", flat=True)
+                for email in subscribers:
+                    send_course_update_email.delay(email, course.title)
+                # Обновить поле last_updated текущим временем
+                course.last_updated = now
+                course.save(update_fields=["last_updated"])
+        return response
+
 
 class LessonViewSet(viewsets.ModelViewSet):
     """ViewSet для урока (поддерживает все CRUD операции)."""
@@ -70,6 +98,25 @@ class LessonViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
+
+    def update(self, request, *args, **kwargs):
+        """При обновлении урока уведомляем подписчиков курса."""
+        response = super().update(request, *args, **kwargs)
+
+        if response.status_code == status.HTTP_200_OK:
+            lesson = self.get_object()
+            course = lesson.course
+            now = timezone.now()
+            # Проверяем, если last_updated отсутствует или прошло более 4 часов
+            if not course.last_updated or (now - course.last_updated) > timedelta(
+                hours=4
+            ):
+                subscribers = course.subscribers.values_list("email", flat=True)
+                for email in subscribers:
+                    send_course_update_email.delay(email, course.title)
+                course.last_updated = now
+                course.save(update_fields=["last_updated"])
+        return response
 
 
 class SubscriptionToggleAPIView(APIView):

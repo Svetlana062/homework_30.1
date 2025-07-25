@@ -2,6 +2,8 @@ from django.contrib.auth import get_user_model
 from django.db import models
 from django.urls import reverse
 
+from users.models import CustomUser
+
 User = get_user_model()
 
 
@@ -15,6 +17,15 @@ class Course(models.Model):
     description = models.TextField(verbose_name="Описание курса")
     owner = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="courses", verbose_name="Владелец"
+    )
+    # Хранение времени последнего обновления курса
+    last_updated = models.DateTimeField(null=True, blank=True)
+
+    subscribers = models.ManyToManyField(
+        CustomUser,
+        through="Subscription",
+        related_name="subscribed_courses",
+        blank=True,
     )
 
     def __str__(self):
@@ -59,7 +70,7 @@ class Subscription(models.Model):
         User, on_delete=models.CASCADE, related_name="subscriptions"
     )
     course = models.ForeignKey(
-        "Course", on_delete=models.CASCADE, related_name="subscribers"
+        "Course", on_delete=models.CASCADE, related_name="subscriptions"
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
