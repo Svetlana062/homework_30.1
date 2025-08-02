@@ -24,7 +24,7 @@ Django и Django REST Framework. Он включает модели курсов
 ### Требования к окружению
 Python 3.13+
 
-### Установка
+## Установка
 * Клонируйте репозиторий:
 ```
 git clone https://github.com/Svetlana062/homework_30.1.git
@@ -46,6 +46,18 @@ python manage.py migrate
 python manage.py runserver
 ```
 API будет доступен по адресу: http://127.0.0.1:8000/
+
+## Запуск проекта с помощью Docker Compose
+
+Для удобства запуска проекта можно использовать `docker-compose`.  
+Убедитесь, что у вас установлен Docker и Docker Compose.
+
+* Чтобы выполнить запуск, в корне проекта выполните команду:
+
+```
+docker-compose up -d
+```
+
 
 ## Структура проекта
 Данный проект содержит два Django-приложения:
@@ -80,3 +92,4 @@ API будет доступен по адресу: http://127.0.0.1:8000/
 python manage.py loaddata payment.json
 ```
 * Файл .env.example, содержащий список необходимых переменных окружения для настройки проекта.
+
