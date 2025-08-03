@@ -1,14 +1,12 @@
-version: "3.9"
-
 services:
   web:
     build:
       context: .
       dockerfile: Dockerfile
-    command: python myproject/manage.py runserver 0.0.0.0:8000
+    command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000 --noreload"
     volumes:
       - .:/app
-    working_dir: /app
+    tty: true
     ports:
       - "8000:8000"
     env_file:
@@ -40,7 +38,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: celery -A myproject worker -l info -P eventlet
+    command: celery -A myproject worker -l info
     volumes:
       - .:/app
     working_dir: /app
@@ -50,13 +48,12 @@ services:
       - redis
       - db
       - web  # чтобы убедиться, что Django запущен
-    restart: always  # для автоматического перезапуска
 
   celery-beat:
     build:
       context: .
       dockerfile: Dockerfile
-    command: celery -A myproject beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    command: celery -A myproject beat -l info
     volumes:
       - .:/app
     working_dir: /app
@@ -66,7 +63,6 @@ services:
       - redis
       - db
       - web  # чтобы убедиться, что Django запущен
-    restart: always  # для автоматического перезапуска
 
 volumes:
   pgdata:

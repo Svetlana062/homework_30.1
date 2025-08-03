@@ -70,6 +70,7 @@ DATABASES = {
         "PASSWORD": os.getenv("DATABASE_PASSWORD"),
         "HOST": os.getenv("DATABASE_HOST"),
         "PORT": os.getenv("DATABASE_PORT", default="5432"),
+        'CONN_MAX_AGE': 0,  # отключить persistent connections
     }
 }
 
