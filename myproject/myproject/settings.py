@@ -122,7 +122,7 @@ EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",  # правильный путь для django-redis
-        "LOCATION": "redis://127.0.0.1:6379/1",  # расположение Redis-сервера
+        "LOCATION": os.getenv("REDIS_URL", "redis://redis:6379/1"),  # расположение Redis-сервера
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         },
@@ -165,10 +165,10 @@ SWAGGER_SETTINGS = {
 # Настройки для Celery
 
 # URL-адрес брокера сообщений (Redis по умолчанию работает на порту 6379)
-CELERY_BROKER_URL = os.getenv('REDIS_URL')
+CELERY_BROKER_URL = os.getenv('REDIS_URL', 'redis://redis:6379/0')
 
 # URL-адрес брокера результатов, также Redis
-CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND")
+CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", 'redis://redis:6379/0')
 
 # Часовой пояс для работы Celery
 CELERY_TIMEZONE = "UTC"
