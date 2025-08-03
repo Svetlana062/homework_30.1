@@ -16,6 +16,7 @@ services:
     depends_on:
       - db
       - redis
+    restart: always  # для автоматического перезапуска
 
   db:
     image: postgres:15
@@ -48,6 +49,8 @@ services:
     depends_on:
       - redis
       - db
+      - web  # чтобы убедиться, что Django запущен
+    restart: always  # для автоматического перезапуска
 
   celery-beat:
     build:
@@ -56,11 +59,14 @@ services:
     command: celery -A myproject beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
     volumes:
       - .:/app
+    working_dir: /app
     env_file:
       - .env
     depends_on:
       - redis
       - db
+      - web  # чтобы убедиться, что Django запущен
+    restart: always  # для автоматического перезапуска
 
 volumes:
   pgdata:
