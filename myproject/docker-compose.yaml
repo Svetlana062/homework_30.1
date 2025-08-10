@@ -63,6 +63,12 @@ services:
       - redis
       - db
       - web  # чтобы убедиться, что Django запущен
+  nginx:
+    build: ./nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - web
 
 volumes:
   pgdata:
