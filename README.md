@@ -88,6 +88,53 @@ docker-compose down
 * В логах нет критических ошибок;
 * Все переменные окружения заданы корректно.
 
+
+## Настройка удаленного сервера и деплоя
+
+1. Подключитесь к серверу через SSH:
+   ```
+   ssh ubuntu_test@89.169.176.30
+   ```
+2. Установите необходимые пакеты:
+```
+sudo apt update
+sudo apt install python3 python3-venv python3-pip nginx
+```
+3. Создайте и активируйте виртуальное окружение:
+```
+python3 -m venv venv
+source venv/bin/activate
+```
+4. Установите зависимости:
+```
+pip install django gunicorn
+```
+5. Запустите Gunicorn (из папки с проектом):
+```
+gunicorn myproject.wsgi:application --bind 0.0.0.0:8000
+```
+6. Настройте Nginx (файл в /etc/nginx/sites-available/myproject):
+```
+server {
+    listen 80;
+    server_name 89.169.176.30;
+
+    location / {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}
+```
+7. Активируйте конфигурацию и перезапустите Nginx:
+```
+sudo ln -s /etc/nginx/sites-available/myproject/etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl restart nginx
+```
+Готово! Теперь приложение доступно по адресу http://89.169.176.30
+
+
 ## Структура проекта
 Данный проект содержит два Django-приложения:
 
