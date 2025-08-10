@@ -1,4 +1,5 @@
 import os
+import sys
 from datetime import timedelta
 from pathlib import Path
 from celery.schedules import crontab
@@ -186,3 +187,11 @@ CELERY_BEAT_SCHEDULE = {
     'schedule': crontab(hour=0, minute=0),  # каждый день в 00:00
     },
 }
+
+if 'test' in sys.argv:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'test_db.sqlite3',
+        }
+    }
