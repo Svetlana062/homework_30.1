@@ -25,11 +25,9 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",  # встроенное приложение, для управления и обслуживания статических файлов
     "django_extensions",  # дополнительные команды и утилиты для фреймворка Django
     "django_celery_beat",  # расширение, позволяющее хранить расписание периодических задач в бд
-
     "rest_framework",  # подключаем DRF
     "rest_framework_simplejwt",  # подключаем JWT
     "drf_yasg",  # подключаем drf-yasg
-
     "users",  # приложение для регистрации/авторизации
     "courses",  # приложение для создания курса и уроков
 ]
@@ -71,7 +69,7 @@ DATABASES = {
         "PASSWORD": os.getenv("DATABASE_PASSWORD"),
         "HOST": os.getenv("DATABASE_HOST"),
         "PORT": os.getenv("DATABASE_PORT", default="5432"),
-        'CONN_MAX_AGE': 0,  # отключить persistent connections
+        "CONN_MAX_AGE": 0,  # отключить persistent connections
     }
 }
 
@@ -124,7 +122,9 @@ EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",  # правильный путь для django-redis
-        "LOCATION": os.getenv("REDIS_URL", "redis://redis:6379/1"),  # расположение Redis-сервера
+        "LOCATION": os.getenv(
+            "REDIS_URL", "redis://redis:6379/1"
+        ),  # расположение Redis-сервера
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         },
@@ -152,25 +152,25 @@ STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
 # Конфигурация для Swagger (инструмента для документирования и тестирования
 # REST API), которая определяет способы аутентификации, используемые в нашем API.
 SWAGGER_SETTINGS = {
-   'SECURITY_DEFINITIONS': {  # словарь, где описываются методы безопасности (аутентификации)
-      'Basic': {  # базовая аутентификация HTTP (клиент отправляет логин и пароль в заголовке запроса)
-            'type': 'basic'
-      },
-      'Bearer': {  # аутентификация по токену (у нас JWT), где токен передается в заголовке Authorization
-            'type': 'apiKey',  # аутентификация происходит через API-ключ.
-            'name': 'Authorization',  # имя HTTP-заголовка, в котором передается токен
-            'in': 'header'  # указывает, что ключ (токен) передается в заголовке запроса
-      }
-   }
+    "SECURITY_DEFINITIONS": {  # словарь, где описываются методы безопасности (аутентификации)
+        "Basic": {  # базовая аутентификация HTTP (клиент отправляет логин и пароль в заголовке запроса)
+            "type": "basic"
+        },
+        "Bearer": {  # аутентификация по токену (у нас JWT), где токен передается в заголовке Authorization
+            "type": "apiKey",  # аутентификация происходит через API-ключ.
+            "name": "Authorization",  # имя HTTP-заголовка, в котором передается токен
+            "in": "header",  # указывает, что ключ (токен) передается в заголовке запроса
+        },
+    }
 }
 
 # Настройки для Celery
 
 # URL-адрес брокера сообщений (Redis по умолчанию работает на порту 6379)
-CELERY_BROKER_URL = os.getenv('REDIS_URL', 'redis://redis:6379/0')
+CELERY_BROKER_URL = os.getenv("REDIS_URL", "redis://redis:6379/0")
 
 # URL-адрес брокера результатов, также Redis
-CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", 'redis://redis:6379/0')
+CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", "redis://redis:6379/0")
 
 # Часовой пояс для работы Celery
 CELERY_TIMEZONE = "UTC"
@@ -182,16 +182,16 @@ CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_TIME_LIMIT = 30 * 60
 
 CELERY_BEAT_SCHEDULE = {
-    'deactivate_inactive_users_every_day': {
-    'task': 'users.tasks.deactivate_inactive_users',
-    'schedule': crontab(hour=0, minute=0),  # каждый день в 00:00
+    "deactivate_inactive_users_every_day": {
+        "task": "users.tasks.deactivate_inactive_users",
+        "schedule": crontab(hour=0, minute=0),  # каждый день в 00:00
     },
 }
 
-if 'test' in sys.argv:
+if "test" in sys.argv:
     DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'test_db.sqlite3',
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "test_db.sqlite3",
         }
     }
