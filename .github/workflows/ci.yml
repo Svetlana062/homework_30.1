@@ -29,6 +29,8 @@ jobs:
         pip install -r requirements.txt
 
     - name: Run migrations
+      env:
+        SECRET_KEY: ${{ secrets.SECRET_KEY }}
       run: python manage.py migrate
 
     - name: Run tests
@@ -46,7 +48,6 @@ jobs:
 
       - name: Build Docker image
         run: docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/myapp:${{ github.sha }} -f Dockerfile
-
       - name: Push Docker image to Docker Hub
         run: docker push ${{ secrets.DOCKER_HUB_USERNAME }}/myapp:${{ github.sha }}
 
