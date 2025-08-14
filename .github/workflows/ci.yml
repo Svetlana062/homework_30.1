@@ -58,6 +58,7 @@ jobs:
 
     - name: Run tests
       env:
+        SECRET_KEY: ${{ secrets.SECRET_KEY }}
         DATABASE_NAME: postgres  # Имя базы данных
         DATABASE_USER: postgres  # Имя пользователя
         DATABASE_PASSWORD: 2496543a  # Пароль
