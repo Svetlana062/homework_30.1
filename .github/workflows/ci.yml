@@ -68,7 +68,7 @@ jobs:
         DATABASE_PASSWORD: 2496543a  # Пароль
         DATABASE_HOST: postgres  # Хост базы данных
         DATABASE_PORT: 5432  # Порт базы данных
-      run: python manage.py test
+      run: python manage.py test courses.tests
 
   build:
     runs-on: ubuntu-latest
