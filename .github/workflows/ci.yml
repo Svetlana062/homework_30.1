@@ -66,8 +66,9 @@ jobs:
         DATABASE_NAME: postgres  # Имя базы данных
         DATABASE_USER: postgres  # Имя пользователя
         DATABASE_PASSWORD: 2496543a  # Пароль
-        DATABASE_HOST: localhost  # Хост базы данных
+        DATABASE_HOST: postgres  # Хост базы данных
         DATABASE_PORT: 5432  # Порт базы данных
+        PYTHONPATH: .
       run: python manage.py test
 
   build:
