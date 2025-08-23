@@ -88,30 +88,77 @@ docker-compose down
 * В логах нет критических ошибок;
 * Все переменные окружения заданы корректно.
 
+
+## Настройка удаленного сервера и деплоя
+
+1. Подключитесь к серверу через SSH:
+   ```
+   ssh ubuntu_test@89.169.176.30
+   ```
+2. Установите необходимые пакеты:
+```
+sudo apt update
+sudo apt install python3 python3-venv python3-pip nginx
+```
+3. Создайте и активируйте виртуальное окружение:
+```
+python3 -m venv venv
+source venv/bin/activate
+```
+4. Установите зависимости:
+```
+pip install django gunicorn
+```
+5. Запустите Gunicorn (из папки с проектом):
+```
+gunicorn myproject.wsgi:application --bind 0.0.0.0:8000
+```
+6. Настройте Nginx (файл в /etc/nginx/sites-available/myproject):
+```
+server {
+    listen 80;
+    server_name 89.169.176.30;
+
+    location / {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}
+```
+7. Активируйте конфигурацию и перезапустите Nginx:
+```
+sudo ln -s /etc/nginx/sites-available/myproject/etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl restart nginx
+```
+Готово! Теперь приложение доступно по адресу http://89.169.176.30
+
+
 ## Структура проекта
 Данный проект содержит два Django-приложения:
 
 1. users (реализует управление пользователями):
 * Модель пользователя (CustomUser) с полями для авторизации, статусом активности и ролью
-администратора (myproject/users/models.py);
-* Миграции базы данных (myproject/users/migrations/);
+администратора (users/models.py);
+* Миграции базы данных (users/migrations/);
 * Команда для создания суперпользователя с предустановленными данными
-(myproject/users/management/commands/csu.py);
-* Сериализатор модели пользователя для API (myproject/users/serializers.py);
-* Формы для регистрации, входа и создания новых пользователей (myproject/users/forms.py);
-* ViewSet для работы с пользователями через API (myproject/users/views.py).
-* Permissions для разграничения прав доступа (myproject\users\permissions.py)
+(users/management/commands/csu.py);
+* Сериализатор модели пользователя для API (users/serializers.py);
+* Формы для регистрации, входа и создания новых пользователей (users/forms.py);
+* ViewSet для работы с пользователями через API (users/views.py).
+* Permissions для разграничения прав доступа (users\permissions.py)
 
 2. courses (реализует управление курсами и уроками):
-* Модели курса и урока (myproject/courses/models.py);
-* Миграции базы данных (myproject/courses/migrations/0001_initial.py);
-* Сериализатор курса для API (myproject/courses/serializers.py);
+* Модели курса и урока (courses/models.py);
+* Миграции базы данных (courses/migrations/0001_initial.py);
+* Сериализатор курса для API (courses/serializers.py);
 * ViewSet для курсов (CourseViewSet);
 * Generic-классы для работы с уроками (например, список и создание уроков) (LessonListCreate);
 * APIView для получения, обновления или удаления конкретного урока по его ID;
-* Permissions для разграничения прав доступа (myproject\courses\permissions.py);
-* Валидатор ссылок на YouTube (myproject/courses/validators.py);
-* Пагинатор для списков и уроков (myproject/courses/paginations.py).
+* Permissions для разграничения прав доступа (courses\permissions.py);
+* Валидатор ссылок на YouTube (courses/validators.py);
+* Пагинатор для списков и уроков (courses/paginations.py).
 
 ### Дополнительно
 В проекте также присутствуют: 
@@ -122,4 +169,3 @@ python manage.py loaddata payment.json
 ```
 * Файл .env.example, содержит список необходимых переменных окружения для
 настройки проекта.
-

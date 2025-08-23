@@ -5,7 +5,8 @@ services:
       dockerfile: Dockerfile
     command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000 --noreload"
     volumes:
-      - .:/app
+      - .:/app  # Монтируем текущую директорию в /app контейнера
+    working_dir: /app
     tty: true
     ports:
       - "8000:8000"
@@ -63,6 +64,12 @@ services:
       - redis
       - db
       - web  # чтобы убедиться, что Django запущен
+  nginx:
+    build: ./nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - web
 
 volumes:
   pgdata:
